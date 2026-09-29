@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>index.html</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#cfe8c4;--card:#fff;--ink:#1d2b1f;--muted:#455a48;--main:#2f6b3f;--main-ink:#fff;--accent:#f2c14e;--line:#a9cc9c;--good:#1f7a3a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121a14;--card:#1b271e;--ink:#e8f0e2;--muted:#9bb09d;--main:#63b377;--main-ink:#0f1a12;--accent:#e6b93f;--line:#2c3d30;--good:#7fd394}}
+:root[data-theme="dark"]{--bg:#121a14;--card:#1b271e;--ink:#e8f0e2;--muted:#9bb09d;--main:#63b377;--main-ink:#0f1a12;--accent:#e6b93f;--line:#2c3d30;--good:#7fd394}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Trebuchet MS","Segoe UI",Verdana,sans-serif;line-height:1.45}
+main{max-width:520px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:1.9rem;margin:.2em 0 .3em}
+h2{font-size:1.3rem;margin:.2em 0 .6em}
+p{color:var(--muted);margin:.3em 0 1em}
+.screen{display:none}.screen.on{display:block}
+input,select{width:100%;padding:12px;margin:0 0 10px;border:2px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit}
+input:focus,button:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:12px 16px;background:var(--main);color:var(--main-ink);font-weight:700}
+button.sec{background:transparent;color:var(--ink);border:2px solid var(--line)}
+button.small{padding:6px 10px;font-size:.85rem}
+.menu{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.menu button{padding:26px 10px;font-size:1.05rem;background:var(--card);color:var(--ink);border:2px solid var(--line);border-radius:16px}
+.menu button:first-child{background:var(--main);color:var(--main-ink);border-color:var(--main)}
+.box{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px 14px;margin:0 0 10px}
+.row{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.row>span:first-child{flex:1}
+.price{font-weight:700;white-space:nowrap}
+.best{color:var(--good)}
+.tag{display:inline-block;background:var(--accent);color:#1d2b1f;border-radius:6px;padding:0 6px;font-size:.75rem;font-weight:700;margin-left:6px}
+.small-t{color:var(--muted);font-size:.85rem}
+.done .nm{text-decoration:line-through;opacity:.55}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.stat{font-size:1.6rem;font-weight:700}
+</style>
+</head>
+<body>
+<main>
+
+<div id="bienvenida" class="screen on">
+  <h1>Igel! 🐸</h1>
+  <p>Kaixo, bienvenido a tu asistente de compra semanal.</p>
+  <input type="text" id="nombre" placeholder="Introduce tu nombre" autocomplete="off">
+  <button onclick="empezar()" id="btnEmpezar">Empezar</button>
+</div>
+
+<div id="inicio" class="screen">
+  <h1 id="saludo"></h1>
+  <p id="resumen"></p>
+  <div class="menu">
+    <button onclick="ir('registrar')">💶 Registrar precio</button>
+    <button onclick="ir('buscar')">🔍 Buscar producto</button>
+    <button onclick="ir('lista')">🛒 Lista de compra</button>
+    <button onclick="ir('analisis')">📊 Análisis</button>
+  </div>
+  <p style="margin-top:24px"><button class="sec small" onclick="salir()">Cambiar de usuario</button></p>
+</div>
+
+<div id="registrar" class="screen">
+  <div class="top"><h2>Registrar precio</h2><button class="sec small" onclick="ir('inicio')">Inicio</button></div>
+  <input id="rProd" list="dlProd" placeholder="Producto (ej. leche entera 1L)">
+  <input id="rMarca" list="dlMarca" placeholder="Marca (opcional, ej. Hacendado)">
+  <div class="two">
+    <input id="rTienda" list="dlTienda" placeholder="Tienda">
+    <input id="rPrecio" type="text" inputmode="decimal" placeholder="Precio €">
+  </div>
+  <button onclick="guardarPrecio()">Guardar precio</button>
+  <p id="rMsg" class="small-t"></p>
+  <h2>Últimos registros</h2>
+  <div id="rRecientes"></div>
+</div>
+
+<div id="buscar" class="screen">
+  <div class="top"><h2>Buscar producto</h2><button class="sec small" onclick="ir('inicio')">Inicio</button></div>
+  <input id="bTexto" placeholder="Escribe para buscar…" oninput="pintarBusqueda()">
+  <div id="bRes"></div>
+</div>
+
+<div id="lista" class="screen">
+  <div class="top"><h2>Lista de compra</h2><button class="sec small" onclick="ir('inicio')">Inicio</button></div>
+  <div class="two" style="grid-template-columns:1fr auto">
+    <input id="lNuevo" list="dlLista" placeholder="Añadir producto" onkeydown="if(event.key==='Enter')anadir()">
+    <button onclick="anadir()" style="margin-bottom:10px">Añadir</button>
+  </div>
+  <div id="lItems"></div>
+  <div id="lTotal" class="box" style="display:none"></div>
+  <button class="sec small" onclick="quitarHechos()">Quitar los tachados</button>
+</div>
+
+<div id="analisis" class="screen">
+  <div class="top"><h2>Análisis</h2><button class="sec small" onclick="ir('inicio')">Inicio</button></div>
+  <div id="aCont"></div>
+</div>
+
+<datalist id="dlProd"></datalist>
+<datalist id="dlTienda"></datalist>
+<datalist id="dlMarca"></datalist>
+<datalist id="dlLista"></datalist>
+</main>
+
+<script>
+var nombre="", datos={precios:[],lista:[]};
+var $=function(i){return document.getElementById(i)};
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function eur(n){return n.toFixed(2).replace(".",",")+" €"}
+function key(s){return s.trim().toLowerCase()}
+
+function guardar(){try{localStorage.setItem("igel:"+key(nombre),JSON.stringify(datos))}catch(e){}}
+function cargar(){
+  datos={precios:[],lista:[]};
+  try{var r=localStorage.getItem("igel:"+key(nombre));if(r){var d=JSON.parse(r);datos.precios=d.precios||[];datos.lista=d.lista||[]}}catch(e){}
+}
+
+function ir(id){
+  document.querySelectorAll(".screen").forEach(function(s){s.classList.remove("on")});
+  $(id).classList.add("on");window.scrollTo(0,0);
+  if(id==="inicio")pintarInicio();
+  if(id==="registrar"){$("rMsg").textContent="";pintarRecientes()}
+  if(id==="buscar")pintarBusqueda();
+  if(id==="lista")pintarLista();
+  if(id==="analisis")pintarAnalisis();
+  listas();
+}
+
+function empezar(){
+  var n=$("nombre").value.trim();
+  if(!n){$("nombre").focus();return}
+  nombre=n;cargar();
+  try{localStorage.setItem("igel:ultimo",n)}catch(e){}
+  ir("inicio");
+}
+function salir(){
+  try{localStorage.removeItem("igel:ultimo")}catch(e){}
+  $("nombre").value="";nombre="";ir("bienvenida");
+}
+function pintarInicio(){
+  $("saludo").textContent="🐸 Kaixo, "+nombre;
+  var pend=datos.lista.filter(function(x){return !x.hecho}).length;
+  $("resumen").textContent=datos.precios.length+" precios guardados · "+pend+" productos pendientes en la lista";
+}
+
+/* Datos derivados: último precio por producto y tienda */
+function nom(r){var m=(r.marca||"").trim();return m?r.producto+" ("+m+")":r.producto}
+function porProducto(){
+  var m={};
+  datos.precios.forEach(function(r){
+    var d=nom(r),k=key(d);
+    if(!m[k])m[k]={nombre:d,producto:r.producto,tiendas:{},todos:[]};
+    m[k].tiendas[key(r.tienda)]={tienda:r.tienda,precio:r.precio,fecha:r.fecha};
+    m[k].todos.push(r.precio);
+  });
+  return m;
+}
+function grupoDe(m,texto){
+  var k=key(texto);
+  if(m[k])return m[k];
+  var b=null;
+  Object.keys(m).forEach(function(x){var g=m[x];if(key(g.producto)===k){if(!b||mejor(g).precio<mejor(b).precio)b=g}});
+  return b;
+}
+function mejor(p){
+  var b=null;
+  Object.keys(p.tiendas).forEach(function(t){var x=p.tiendas[t];if(!b||x.precio<b.precio)b=x});
+  return b;
+}
+function opts(o){return Object.keys(o).map(function(p){return '<option value="'+esc(p)+'">'}).join("")}
+function listas(){
+  var ps={},ts={},ms={},ls={};
+  datos.precios.forEach(function(r){ps[r.producto]=1;ts[r.tienda]=1;if(r.marca)ms[r.marca]=1;ls[r.producto]=1;ls[nom(r)]=1});
+  $("dlProd").innerHTML=opts(ps);$("dlTienda").innerHTML=opts(ts);
+  $("dlMarca").innerHTML=opts(ms);$("dlLista").innerHTML=opts(ls);
+}
+
+/* Registrar */
+function guardarPrecio(){
+  var p=$("rProd").value.trim(),mk=$("rMarca").value.trim(),t=$("rTienda").value.trim(),pr = parseFloat($("rPrecio").value.trim().replace(",", "."));;
+  if(!p||!t||isNaN(pr)||pr<0){$("rMsg").textContent="Rellena producto, tienda y un precio válido.";return}
+  datos.precios.push({producto:p,marca:mk,tienda:t,precio:pr,fecha:new Date().toISOString().slice(0,10)});
+  guardar();listas();
+  $("rMsg").textContent="Guardado: "+p+(mk?" ("+mk+")":"")+" en "+t+" a "+eur(pr);
+  $("rProd").value="";$("rMarca").value="";$("rPrecio").value="";$("rProd").focus();
+  pintarRecientes();
+}
+function borrarPrecio(i){
+  var r=datos.precios.splice(i,1)[0];
+  guardar();listas();pintarRecientes();
+  if(r)$("rMsg").textContent="Borrado: "+nom(r)+" en "+r.tienda+" ("+eur(r.precio)+")";
+}
+function pintarRecientes(){
+  var n=datos.precios.length,ini=Math.max(0,n-10),h="";
+  for(var i=n-1;i>=ini;i--){
+    var r=datos.precios[i];
+    h+='<div class="box row"><span>'+esc(nom(r))+'<br><span class="small-t">'+esc(r.tienda)+' · '+r.fecha+'</span></span><span class="price">'+eur(r.precio)+'</span><button class="sec small" onclick="borrarPrecio('+i+')" aria-label="Borrar registro">✕</button></div>';
+  }
+  $("rRecientes").innerHTML=h||'<p>Aún no hay precios. Registra el primero arriba.</p>';
+}
+
+/* Buscar */
+function pintarBusqueda(){
+  var q=key($("bTexto").value),m=porProducto();
+  var ks=Object.keys(m).filter(function(k){return k.indexOf(q)>-1}).sort();
+  if(!ks.length){$("bRes").innerHTML='<p>'+(datos.precios.length?'No hay productos con ese nombre.':'Todavía no has registrado precios.')+'</p>';return}
+  $("bRes").innerHTML=ks.map(function(k){
+    var p=m[k],b=mejor(p);
+    var ts=Object.keys(p.tiendas).map(function(t){return p.tiendas[t]}).sort(function(a,c){return a.precio-c.precio});
+    return '<div class="box"><strong>'+esc(p.nombre)+'</strong>'+ts.map(function(x){
+      var es=x===b;
+      return '<div class="row"><span>'+esc(x.tienda)+(es?'<span class="tag">más barato</span>':'')+'<br><span class="small-t">'+x.fecha+'</span></span><span class="price '+(es?'best':'')+'">'+eur(x.precio)+'</span></div>';
+    }).join("")+'</div>';
+  }).join("");
+}
+
+/* Lista */
+function anadir(){
+  var v=$("lNuevo").value.trim();if(!v)return;
+  datos.lista.push({id:Date.now()+Math.random(),nombre:v,hecho:false});
+  $("lNuevo").value="";guardar();pintarLista();$("lNuevo").focus();
+}
+function marcar(id){datos.lista.forEach(function(x){if(x.id===id)x.hecho=!x.hecho});guardar();pintarLista()}
+function borrar(id){datos.lista=datos.lista.filter(function(x){return x.id!==id});guardar();pintarLista()}
+function quitarHechos(){datos.lista=datos.lista.filter(function(x){return !x.hecho});guardar();pintarLista()}
+function pintarLista(){
+  var m=porProducto(),total=0,conPrecio=0,sin=0;
+  $("lItems").innerHTML=datos.lista.length?datos.lista.map(function(x){
+    var p=grupoDe(m,x.nombre),b=p&&mejor(p),info="";
+    if(b){info='<span class="small-t best">'+eur(b.precio)+' en '+esc(b.tienda)+(key(p.nombre)!==key(x.nombre)?' · '+esc(p.nombre):'')+'</span>';if(!x.hecho){total+=b.precio;conPrecio++}}
+    else if(!x.hecho)sin++;
+    return '<div class="box row '+(x.hecho?'done':'')+'"><input type="checkbox" style="width:auto;margin:0" '+(x.hecho?'checked':'')+' onchange="marcar('+x.id+')" aria-label="Marcar"><span class="nm-wrap"><span class="nm">'+esc(x.nombre)+'</span><br>'+info+'</span><button class="sec small" onclick="borrar('+x.id+')" aria-label="Borrar">✕</button></div>';
+  }).join(""):'<p>La lista está vacía. Añade lo que necesitas comprar.</p>';
+  var t=$("lTotal");
+  if(conPrecio||sin){t.style.display="block";t.innerHTML='Estimado con los precios más baratos: <strong>'+eur(total)+'</strong>'+(sin?'<br><span class="small-t">'+sin+' sin precio registrado</span>':'')}
+  else t.style.display="none";
+}
+
+/* Análisis */
+function pintarAnalisis(){
+  var m=porProducto(),ks=Object.keys(m);
+  if(!ks.length){$("aCont").innerHTML='<p>Registra algunos precios para ver el análisis.</p>';return}
+  var gana={},vari=[];
+  ks.forEach(function(k){
+    var p=m[k],b=mejor(p);
+    if(Object.keys(p.tiendas).length>1)gana[b.tienda]=(gana[b.tienda]||0)+1;
+    var mx=Math.max.apply(null,p.todos),mn=Math.min.apply(null,p.todos);
+    if(mx>mn)vari.push({n:p.nombre,d:mx-mn,mn:mn,mx:mx});
+  });
+  var tiendas=Object.keys(gana).sort(function(a,b){return gana[b]-gana[a]});
+  vari.sort(function(a,b){return b.d-a.d});
+  var h='<div class="two"><div class="box"><div class="stat">'+ks.length+'</div><span class="small-t">productos</span></div><div class="box"><div class="stat">'+datos.precios.length+'</div><span class="small-t">precios registrados</span></div></div>';
+  h+='<h2>Tienda más barata</h2>';
+  h+=tiendas.length?tiendas.map(function(t){return '<div class="box row"><span>'+esc(t)+'</span><span class="price">'+gana[t]+' producto'+(gana[t]>1?'s':'')+'</span></div>'}).join(''):'<p>Registra el mismo producto en dos tiendas para compararlas.</p>';
+  h+='<h2>Mayor variación de precio</h2>';
+  h+=vari.length?vari.slice(0,5).map(function(v){return '<div class="box row"><span>'+esc(v.n)+'<br><span class="small-t">de '+eur(v.mn)+' a '+eur(v.mx)+'</span></span><span class="price">'+eur(v.d)+'</span></div>'}).join(''):'<p>Aún no hay productos con precios distintos.</p>';
+  $("aCont").innerHTML=h;
+}
+
+/* Arranque: recuerda al último usuario */
+(function(){
+  try{var u=localStorage.getItem("igel:ultimo");if(u){$("nombre").value=u;$("btnEmpezar").textContent="Continuar como "+u}}catch(e){}
+  $("nombre").addEventListener("keydown",function(e){if(e.key==="Enter")empezar()});
+})();
+</script>
+</body>
+</html>
